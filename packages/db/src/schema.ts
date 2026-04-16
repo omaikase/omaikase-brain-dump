@@ -1,7 +1,13 @@
 import {
   pgTable, uuid, text, timestamp, boolean, jsonb,
-  pgEnum, numeric, integer
+  pgEnum, numeric, integer, index
 } from 'drizzle-orm/pg-core'
+
+// ─── Enums ─────────────────────────────────────────────────────────────────
+
+export const autonomyModeEnum = pgEnum('autonomy_mode', ['shadow', 'assisted', 'full'])
+
+export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'succeeded', 'failed', 'refunded'])
 
 // ─── Tenants ───────────────────────────────────────────────────────────────
 
@@ -9,8 +15,8 @@ export const tenants = pgTable('tenants', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
   slug: text('slug').notNull().unique(),
-  autonomyMode: text('autonomy_mode').notNull().default('shadow'), // shadow | assisted | full
-  createdAt: timestamp('created_at').notNull().defaultNow(),
+  autonomyMode: autonomyModeEnum('autonomy_mode').notNull().default('shadow'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
 // ─── Accounts & Contacts ───────────────────────────────────────────────────
@@ -22,9 +28,11 @@ export const accounts = pgTable('accounts', {
   type: text('type').notNull(), // operator | tenant_customer
   region: text('region'),
   tier: text('tier'), // standard | priority | strategic
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-})
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index('accounts_tenant_id_idx').on(t.tenantId),
+])
 
 export const contacts = pgTable('contacts', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -33,7 +41,10 @@ export const contacts = pgTable('contacts', {
   name: text('name').notNull(),
   email: text('email').notNull(),
   role: text('role'),
-})
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index('contacts_tenant_id_idx').on(t.tenantId),
+])
 
 // ─── Quotes ────────────────────────────────────────────────────────────────
 
@@ -48,15 +59,17 @@ export const quotes = pgTable('quotes', {
   status: quoteStatusEnum('status').notNull().default('draft'),
   totalAmount: numeric('total_amount', { precision: 15, scale: 2 }),
   currency: text('currency').notNull().default('USD'),
-  validUntil: timestamp('valid_until'),
-  sentAt: timestamp('sent_at'),
-  acceptedAt: timestamp('accepted_at'),
+  validUntil: timestamp('valid_until', { withTimezone: true }),
+  sentAt: timestamp('sent_at', { withTimezone: true }),
+  acceptedAt: timestamp('accepted_at', { withTimezone: true }),
   autonomousAction: boolean('autonomous_action').notNull().default(false),
   confidenceScore: numeric('confidence_score', { precision: 4, scale: 3 }),
   pricingRationale: jsonb('pricing_rationale'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-})
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index('quotes_tenant_id_idx').on(t.tenantId),
+])
 
 export const quoteLineItems = pgTable('quote_line_items', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -68,7 +81,9 @@ export const quoteLineItems = pgTable('quote_line_items', {
   totalPrice: numeric('total_price', { precision: 15, scale: 2 }).notNull(),
   termMonths: integer('term_months'),
   metadata: jsonb('metadata'),
-})
+}, (t) => [
+  index('quote_line_items_quote_id_idx').on(t.quoteId),
+])
 
 // ─── Contracts ─────────────────────────────────────────────────────────────
 
@@ -82,15 +97,17 @@ export const contracts = pgTable('contracts', {
   accountId: uuid('account_id').notNull().references(() => accounts.id),
   quoteId: uuid('quote_id').references(() => quotes.id),
   status: contractStatusEnum('status').notNull().default('draft'),
-  startDate: timestamp('start_date'),
-  endDate: timestamp('end_date'),
+  startDate: timestamp('start_date', { withTimezone: true }),
+  endDate: timestamp('end_date', { withTimezone: true }),
   totalValue: numeric('total_value', { precision: 15, scale: 2 }),
-  signedAt: timestamp('signed_at'),
+  signedAt: timestamp('signed_at', { withTimezone: true }),
   signatureProvider: text('signature_provider'),
   signatureDocumentId: text('signature_document_id'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-})
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index('contracts_tenant_id_idx').on(t.tenantId),
+])
 
 // ─── Invoices ──────────────────────────────────────────────────────────────
 
@@ -107,12 +124,14 @@ export const invoices = pgTable('invoices', {
   invoiceNumber: text('invoice_number').notNull().unique(),
   amountDue: numeric('amount_due', { precision: 15, scale: 2 }).notNull(),
   amountPaid: numeric('amount_paid', { precision: 15, scale: 2 }).notNull().default('0'),
-  dueDate: timestamp('due_date'),
-  issuedAt: timestamp('issued_at'),
+  dueDate: timestamp('due_date', { withTimezone: true }),
+  issuedAt: timestamp('issued_at', { withTimezone: true }),
   stripeInvoiceId: text('stripe_invoice_id'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-})
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index('invoices_tenant_id_idx').on(t.tenantId),
+])
 
 // ─── Payments ──────────────────────────────────────────────────────────────
 
@@ -123,15 +142,18 @@ export const payments = pgTable('payments', {
   amount: numeric('amount', { precision: 15, scale: 2 }).notNull(),
   method: text('method').notNull(), // card | ach | wire
   stripePaymentIntentId: text('stripe_payment_intent_id'),
-  status: text('status').notNull(), // pending | succeeded | failed | refunded
-  processedAt: timestamp('processed_at'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-})
+  status: paymentStatusEnum('status').notNull(),
+  processedAt: timestamp('processed_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index('payments_tenant_id_idx').on(t.tenantId),
+])
 
 // ─── Audit Log (immutable) ─────────────────────────────────────────────────
 
 export const auditLog = pgTable('audit_log', {
   id: uuid('id').primaryKey().defaultRandom(),
+  // No FK on tenant_id intentionally — audit records must survive tenant soft-delete
   tenantId: uuid('tenant_id').notNull(),
   actorType: text('actor_type').notNull(), // user | agent | system
   actorId: text('actor_id').notNull(),
@@ -142,8 +164,10 @@ export const auditLog = pgTable('audit_log', {
   policyRuleId: text('policy_rule_id'),
   confidenceScore: numeric('confidence_score', { precision: 4, scale: 3 }),
   autonomousAction: boolean('autonomous_action').notNull().default(false),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-})
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index('audit_log_tenant_id_idx').on(t.tenantId),
+])
 
 // ─── Exceptions ────────────────────────────────────────────────────────────
 
@@ -155,7 +179,9 @@ export const exceptions = pgTable('exceptions', {
   resourceId: uuid('resource_id').notNull(),
   description: text('description').notNull(),
   suggestedAction: text('suggested_action'),
-  resolvedAt: timestamp('resolved_at'),
+  resolvedAt: timestamp('resolved_at', { withTimezone: true }),
   resolvedBy: uuid('resolved_by'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-})
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index('exceptions_tenant_id_idx').on(t.tenantId),
+])
