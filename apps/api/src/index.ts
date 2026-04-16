@@ -1,18 +1,32 @@
-import Fastify from 'fastify';
+import Fastify, { type FastifyInstance } from 'fastify'
+import cors from '@fastify/cors'
+import jwt from '@fastify/jwt'
+import { dbPlugin } from './plugins/db.js'
+import { auditPlugin } from './plugins/audit.js'
 
-const server = Fastify({ logger: true });
+export async function buildApp(): Promise<FastifyInstance> {
+  const app = Fastify({
+    logger: process.env.NODE_ENV !== 'test',
+  })
 
-server.get('/health', async () => {
-  return { status: 'ok', service: 'gnomos-api' };
-});
+  await app.register(cors, {
+    origin: process.env.FRONTEND_URL ?? '*',
+  })
 
-const start = async () => {
-  try {
-    await server.listen({ port: 3000, host: '0.0.0.0' });
-  } catch (err) {
-    server.log.error(err);
-    process.exit(1);
-  }
-};
+  await app.register(jwt, {
+    secret: process.env.JWT_SECRET ?? 'dev-secret-change-in-production',
+  })
 
-start();
+  await app.register(dbPlugin)
+  await app.register(auditPlugin)
+
+  app.get('/health', async () => ({ ok: true, timestamp: new Date().toISOString() }))
+
+  return app
+}
+
+// Start server only when run directly (not during tests)
+if (process.argv[1] === new URL(import.meta.url).pathname) {
+  const app = await buildApp()
+  await app.listen({ port: Number(process.env.PORT ?? 3001), host: '0.0.0.0' })
+}
