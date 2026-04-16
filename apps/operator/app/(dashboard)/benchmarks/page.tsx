@@ -65,7 +65,7 @@ export default function BenchmarksPage() {
             GPU spot and reserved pricing across regions
           </p>
         </div>
-        <Badge variant="default" className="shrink-0 mt-0.5">
+        <Badge variant="outline" className="shrink-0 mt-0.5" title="Contributor access: you receive deeper benchmark segmentation and earlier signal movement">
           Contributor access
         </Badge>
       </div>
@@ -140,7 +140,7 @@ export default function BenchmarksPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredData.map((entry, idx) => (
-            <BenchmarkCard key={`${entry.gpuModel}-${entry.region}-${entry.termType}-${idx}`} entry={entry} />
+            <BenchmarkCard key={`${entry.gpuModel}-${entry.region}-${entry.termType}`} entry={entry} />
           ))}
         </div>
       )}

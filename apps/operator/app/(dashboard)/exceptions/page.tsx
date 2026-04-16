@@ -1,3 +1,4 @@
+import { AlertCircle } from 'lucide-react'
 import { ExceptionCard, type Exception } from '@/components/exception-card'
 
 const SEED_EXCEPTIONS: Exception[] = [
@@ -32,11 +33,19 @@ export default function ExceptionsPage() {
           </p>
         </div>
       </div>
-      <div className="space-y-3">
-        {SEED_EXCEPTIONS.map((ex) => (
-          <ExceptionCard key={ex.id} exception={ex} />
-        ))}
-      </div>
+      {SEED_EXCEPTIONS.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <AlertCircle className="h-10 w-10 text-muted-foreground mb-3" />
+          <p className="text-sm font-medium">No exceptions</p>
+          <p className="text-xs text-muted-foreground mt-1">gnomos is operating within policy</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {SEED_EXCEPTIONS.map((ex) => (
+            <ExceptionCard key={ex.id} exception={ex} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
@@ -27,6 +28,22 @@ function formatAction(action: string): string {
   return ACTION_LABELS[action] ?? action
 }
 
+function getBorderColor(action: string): string {
+  if (action.includes('pending_review') || action.includes('exception')) return 'border-l-amber-400'
+  if (action.includes('reject') || action.includes('dispute')) return 'border-l-destructive'
+  return 'border-l-emerald-500'
+}
+
+function formatRelativeTime(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60_000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  return `${Math.floor(hrs / 24)}d ago`
+}
+
 export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
   if (events.length === 0) {
     return (
@@ -39,13 +56,19 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
   return (
     <div className="space-y-2">
       {events.map((event) => (
-        <Card key={event.id} className="border-l-4 border-l-emerald-500">
+        <Card key={event.id} className={`border-l-4 ${getBorderColor(event.action)}`}>
           <CardContent className="py-3 flex items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="text-sm font-medium truncate">{formatAction(event.action)}</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {event.resourceType} · {event.resourceId.slice(0, 8)} ·{' '}
-                {new Date(event.createdAt).toLocaleTimeString()}
+                {event.resourceType} ·{' '}
+                <Link href={`/${event.resourceType}s/${event.resourceId}`} className="underline underline-offset-2">
+                  {event.resourceId.slice(0, 8)}
+                </Link>{' '}
+                ·{' '}
+                <span title={new Date(event.createdAt).toLocaleString()}>
+                  {formatRelativeTime(event.createdAt)}
+                </span>
               </p>
             </div>
             <div className="flex gap-2 items-center shrink-0">

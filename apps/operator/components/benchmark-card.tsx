@@ -40,11 +40,11 @@ interface BenchmarkCardProps {
 export function BenchmarkCard({ entry }: BenchmarkCardProps) {
   const { gpuModel, region, termType, low, mid, high, trend, sampleSize, change30d } = entry
   const isSparse = sampleSize < 5
-  const changePositive = change30d > 0
   const changeZero = change30d === 0
+  const changeColor = change30d > 0 ? 'text-emerald-600' : change30d < 0 ? 'text-amber-600' : 'text-muted-foreground'
 
   return (
-    <Card>
+    <Card className={isSparse ? 'ring-1 ring-amber-300' : ''}>
       <CardHeader className="pb-0">
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1">
@@ -84,11 +84,7 @@ export function BenchmarkCard({ entry }: BenchmarkCardProps) {
           <span
             className={cn(
               'text-sm font-medium',
-              changeZero
-                ? 'text-muted-foreground'
-                : changePositive
-                  ? 'text-amber-600 dark:text-amber-400'
-                  : 'text-slate-500 dark:text-slate-400'
+              changeZero ? 'text-muted-foreground' : changeColor
             )}
           >
             {formatChange(change30d)} <span className="font-normal text-muted-foreground text-xs">30d</span>
