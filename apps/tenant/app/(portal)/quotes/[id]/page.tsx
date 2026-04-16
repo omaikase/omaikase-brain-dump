@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, CheckCircle, XCircle, Info, Clock } from 'lucide-react'
+import { ArrowLeft, CheckCircle, Info, Clock } from 'lucide-react'
 import { SEED_QUOTES } from '@/lib/seed-data'
 import { StatusBadge } from '@/components/status-badge'
 import { Button } from '@/components/ui/button'
@@ -132,18 +132,19 @@ export default async function QuoteDetailPage(props: PageProps<'/quotes/[id]'>) 
 
       {/* Actions */}
       {quote.status === 'sent' && (
-        <div className="flex items-center gap-3">
-          <Button variant="destructive" size="sm">
-            <XCircle className="size-4" />
-            Decline Quote
-          </Button>
-          <Button size="sm">
-            <CheckCircle className="size-4" />
-            Accept Quote
-          </Button>
-          <p className="ml-2 text-xs text-muted-foreground">
-            Accepting binds you to the terms above. Contact your account manager to negotiate.
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground border rounded-md p-3 bg-muted/40">
+            By accepting, you agree to the terms and pricing above. This creates a binding commitment.
           </p>
+          <div className="flex gap-3 items-center">
+            <Button size="lg">
+              <CheckCircle className="size-4" />
+              Accept Quote
+            </Button>
+            <Button size="lg" variant="ghost" className="text-muted-foreground">
+              Decline
+            </Button>
+          </div>
         </div>
       )}
       {quote.status === 'negotiating' && (

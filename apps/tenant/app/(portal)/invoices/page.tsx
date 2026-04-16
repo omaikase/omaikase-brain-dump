@@ -7,7 +7,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
-const TODAY = new Date('2026-04-15')
+const TODAY = new Date()
 
 function formatCurrency(amount: number, currency = 'USD') {
   return new Intl.NumberFormat('en-US', {
@@ -73,7 +73,7 @@ export default function InvoicesPage() {
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2">
                         <span className="text-base font-semibold">{invoice.invoiceNumber}</span>
-                        <StatusBadge status={effectiveStatus} />
+                        <StatusBadge status={effectiveStatus} context="invoice" />
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span>Issued {formatDate(invoice.issuedAt)}</span>
@@ -111,7 +111,7 @@ export default function InvoicesPage() {
                       {invoice.status === 'sent' && (
                         <Link
                           href={`/invoices/${invoice.id}`}
-                          className={cn(buttonVariants({ variant: 'default', size: 'sm' }), 'gap-1.5')}
+                          className={cn(buttonVariants({ size: 'sm', variant: overdue ? 'destructive' : 'default' }), 'gap-1.5')}
                         >
                           <CreditCard className="size-3.5" />
                           Pay Now

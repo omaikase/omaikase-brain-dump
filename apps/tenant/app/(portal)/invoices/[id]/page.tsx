@@ -1,14 +1,14 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, CreditCard, CheckCircle, AlertCircle } from 'lucide-react'
+import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react'
 import { SEED_INVOICES } from '@/lib/seed-data'
 import { StatusBadge } from '@/components/status-badge'
-import { buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 
-const TODAY = new Date('2026-04-15')
+const TODAY = new Date()
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat('en-US', {
@@ -62,7 +62,7 @@ export default async function InvoiceDetailPage(props: PageProps<'/invoices/[id]
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">{invoice.description}</p>
           </div>
-          <StatusBadge status={effectiveStatus} />
+          <StatusBadge status={effectiveStatus} context="invoice" />
         </div>
       </div>
 
@@ -81,7 +81,7 @@ export default async function InvoiceDetailPage(props: PageProps<'/invoices/[id]
             <div>
               <dt className="text-muted-foreground">Status</dt>
               <dd className="mt-0.5">
-                <StatusBadge status={effectiveStatus} />
+                <StatusBadge status={effectiveStatus} context="invoice" />
               </dd>
             </div>
             <div>
@@ -151,18 +151,9 @@ export default async function InvoiceDetailPage(props: PageProps<'/invoices/[id]
         </div>
       )}
       {invoice.status === 'sent' && (
-        <div className="flex items-center gap-3">
-          <a
-            href="#pay"
-            className={cn(buttonVariants({ variant: 'default', size: 'sm' }), 'gap-1.5')}
-          >
-            <CreditCard className="size-4" />
-            Pay {formatCurrency(balance)}
-          </a>
-          <p className="text-xs text-muted-foreground">
-            Secure payment processing. You will be redirected to complete your payment.
-          </p>
-        </div>
+        <Button size="lg" className="w-full" disabled>
+          Pay ${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })} — Payment processing coming soon
+        </Button>
       )}
     </div>
   )

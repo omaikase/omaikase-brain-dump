@@ -38,7 +38,7 @@ export default function QuotesPage() {
       ) : (
         <div className="flex flex-col gap-4">
           {quotes.map((quote) => (
-            <Card key={quote.id} className="hover:ring-foreground/20 transition-all">
+            <Card key={quote.id} className="ring-1 ring-transparent hover:ring-foreground/20 transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex flex-col gap-1">
@@ -79,10 +79,10 @@ export default function QuotesPage() {
                         </Link>
                         <Link
                           href={`/quotes/${quote.id}`}
-                          className={cn(buttonVariants({ variant: 'default', size: 'sm' }), 'gap-1.5')}
+                          className={cn(buttonVariants({ size: 'sm' }), 'gap-1.5')}
                         >
                           <CheckCircle className="size-3.5" />
-                          Accept Quote
+                          Review & Accept
                         </Link>
                       </>
                     )}
@@ -98,12 +98,14 @@ export default function QuotesPage() {
                         Accepted
                       </div>
                     )}
-                    <Link
-                      href={`/quotes/${quote.id}`}
-                      className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
-                    >
-                      View Details
-                    </Link>
+                    {quote.status !== 'sent' && (
+                      <Link
+                        href={`/quotes/${quote.id}`}
+                        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
+                      >
+                        View Details
+                      </Link>
+                    )}
                   </div>
                 </div>
               </CardContent>

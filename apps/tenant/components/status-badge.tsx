@@ -52,10 +52,23 @@ const STATUS_CONFIG: Record<
 
 interface StatusBadgeProps {
   status: string
+  context?: 'quote' | 'invoice'
   className?: string
 }
 
-export function StatusBadge({ status, className }: StatusBadgeProps) {
+export function StatusBadge({ status, context, className }: StatusBadgeProps) {
+  // For invoices, 'sent' means payment is due
+  if (context === 'invoice' && status === 'sent') {
+    return (
+      <Badge
+        variant="outline"
+        className={cn('bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 font-medium', className)}
+      >
+        Payment Due
+      </Badge>
+    )
+  }
+
   const config = STATUS_CONFIG[status] ?? {
     label: status.charAt(0).toUpperCase() + status.slice(1),
     className: 'bg-zinc-100 text-zinc-600 border-zinc-200',

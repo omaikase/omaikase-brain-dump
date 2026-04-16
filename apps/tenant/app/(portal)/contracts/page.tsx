@@ -1,8 +1,11 @@
+import Link from 'next/link'
 import { ScrollText, Server } from 'lucide-react'
 import { SEED_CONTRACTS } from '@/lib/seed-data'
 import { StatusBadge } from '@/components/status-badge'
 import { EmptyState } from '@/components/empty-state'
+import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 function formatCurrency(amount: number, currency = 'USD') {
   return new Intl.NumberFormat('en-US', {
@@ -78,9 +81,17 @@ export default function ContractsPage() {
                       <span className="text-sm font-medium">{contract.gpuSummary}</span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xl font-bold text-foreground">{formatCurrency(contract.totalValue)}</p>
-                    <p className="text-xs text-muted-foreground">Total contract value</p>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <p className="text-xl font-bold text-foreground">{formatCurrency(contract.totalValue)}</p>
+                      <p className="text-xs text-muted-foreground">Total contract value</p>
+                    </div>
+                    <Link
+                      href={`/contracts/${contract.id}`}
+                      className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
+                    >
+                      View Contract
+                    </Link>
                   </div>
                 </div>
               </CardContent>
