@@ -2,6 +2,7 @@
 -- Execute: psql $DATABASE_URL -f packages/db/migrations/enable-rls.sql
 
 ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contacts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE quotes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE quote_line_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contracts ENABLE ROW LEVEL SECURITY;
@@ -12,6 +13,8 @@ ALTER TABLE exceptions ENABLE ROW LEVEL SECURITY;
 
 -- Policy: each table only visible to the current tenant
 CREATE POLICY tenant_isolation ON accounts
+  USING (tenant_id = current_setting('app.current_tenant')::uuid);
+CREATE POLICY tenant_isolation ON contacts
   USING (tenant_id = current_setting('app.current_tenant')::uuid);
 CREATE POLICY tenant_isolation ON quotes
   USING (tenant_id = current_setting('app.current_tenant')::uuid);
