@@ -2,6 +2,11 @@ import type { PricingInput, PricingOutput } from './pricing.types.js'
 
 export const HOURS_PER_MONTH = 730
 
+const CONFIDENCE_UNKNOWN = 0.3          // unknown GPU/region or non-GPU SKU
+const CONFIDENCE_KNOWN_NO_BENCHMARK = 0.75  // known rate, no benchmark band provided
+const CONFIDENCE_KNOWN_WITH_BENCHMARK = 0.85 // known rate + benchmark band
+const CONFIDENCE_REVIEW_THRESHOLD = 0.7     // below this → requiresReview: true
+
 // Base rates per GPU-hour (USD) — Phase 1 seed data
 // Phase 2: replaced by contributed benchmark engine
 const BASE_RATES: Record<string, Partial<Record<string, number>>> = {
@@ -37,7 +42,7 @@ export function calculatePrice(input: PricingInput): PricingOutput {
     return {
       unitPrice: 0,
       totalPrice: 0,
-      confidenceScore: 0.3,
+      confidenceScore: CONFIDENCE_UNKNOWN,
       rationale: `Non-GPU SKU (${skuType}) — pricing requires manual review`,
       benchmarkPosition: 'unknown',
       requiresReview: true,
@@ -51,7 +56,7 @@ export function calculatePrice(input: PricingInput): PricingOutput {
     return {
       unitPrice: 0,
       totalPrice: 0,
-      confidenceScore: 0.3,
+      confidenceScore: CONFIDENCE_UNKNOWN,
       rationale: `No base rate data for ${gpuModel ?? 'unknown'} in ${region} — manual pricing required`,
       benchmarkPosition: 'unknown',
       requiresReview: true,
@@ -63,12 +68,11 @@ export function calculatePrice(input: PricingInput): PricingOutput {
   const unitPrice = baseRate * (1 - termDiscount + tierAdjustment)
   const totalPrice = unitPrice * quantity * termMonths * HOURS_PER_MONTH
 
-  // Confidence: base 0.75 without benchmark (known rate), 0.85 with benchmark
-  let confidenceScore = 0.75
+  let confidenceScore = CONFIDENCE_KNOWN_NO_BENCHMARK
   let benchmarkPosition: PricingOutput['benchmarkPosition'] = 'unknown'
 
   if (benchmarkBandLow !== undefined && benchmarkBandHigh !== undefined) {
-    confidenceScore = 0.85
+    confidenceScore = CONFIDENCE_KNOWN_WITH_BENCHMARK
     if (unitPrice < benchmarkBandLow) benchmarkPosition = 'below_market'
     else if (unitPrice > benchmarkBandHigh) benchmarkPosition = 'above_market'
     else benchmarkPosition = 'at_market'
@@ -92,6 +96,6 @@ export function calculatePrice(input: PricingInput): PricingOutput {
     confidenceScore,
     rationale,
     benchmarkPosition,
-    requiresReview: confidenceScore < 0.7,
+    requiresReview: confidenceScore < CONFIDENCE_REVIEW_THRESHOLD,
   }
 }
