@@ -1,0 +1,29 @@
+version: '3.9'
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: gnomos
+      POSTGRES_USER: gnomos
+      POSTGRES_PASSWORD: gnomos
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  cerbos:
+    image: ghcr.io/cerbos/cerbos:latest
+    ports:
+      - "3593:3593"
+      - "3592:3592"
+    volumes:
+      - ./policies:/policies
+    command: server --config=/policies/cerbos.yaml
+
+volumes:
+  pgdata:
